@@ -24,8 +24,8 @@ const openapi = fromHono(app, {
 
 app.use('*', (c) => {
 
-  logger.info(c.req.header())
-  return obj.fetch(c.req.url, c.req.raw) // use c.req.raw
+  logger.info(c.req.raw)
+  return ""
 })
 
 // Apply middleware to protected routes
