@@ -32,7 +32,8 @@ export async function consumerAuth(c: Context<{ Bindings: Env }>, next: Next) {
     // Get the consumer Durable Object directly using the API key as the name
     const consumerId = c.env.CONSUMER.idFromName(apiKey);
     const stub = c.env.CONSUMER.get(consumerId);
-
+    logger.info(c.env.CF_ACCESS_CLIENT_ID, "CF_ACCESS_CLIENT_ID")
+    logger.info(c.env.ENVIRONMENT, "ENVIRONMENT")
     // Check if the consumer is initialized
     const isInitialized = await stub.checkConsumerExists();
     if (!isInitialized) {
