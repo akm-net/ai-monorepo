@@ -10,6 +10,9 @@ import { ConsumerGet } from "./endpoints/consumerGet";
 import { consumerAuth } from "./middleware/consumerAuth";
 import { adminAuth } from "./middleware/adminAuth";
 export { Consumer } from "./durable-objects/consumer";
+import { createLogger } from "@workspace/shared-utils";
+
+const logger = createLogger("Admin Auth Middleware");
 
 // Start a Hono app
 const app = new Hono();
@@ -18,6 +21,12 @@ const app = new Hono();
 const openapi = fromHono(app, {
   docs_url: "/",
 });
+
+app.use('*', (c) => {
+
+  logger.info(c.req.header())
+  return obj.fetch(c.req.url, c.req.raw) // use c.req.raw
+})
 
 // Apply middleware to protected routes
 app.use("/getEmbedding", consumerAuth);
