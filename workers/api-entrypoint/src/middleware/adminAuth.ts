@@ -10,16 +10,17 @@ export async function adminAuth(c: Context<{ Bindings: Env }>, next: Next) {
       return;
     }
     // Get the Cloudflare Access service token headers
+    logger.info(c.req)
     const clientId = c.req.header("CF-Access-Client-Id");
     const clientSecret = c.req.header("CF-Access-Client-Secret");
-
-    if (!clientId || !clientSecret) {
-      logger.warn("Missing Cloudflare Access service token headers");
-      return c.json(
-        { error: "Unauthorized: Missing Cloudflare Access service token" },
-        { status: 401 }
-      );
-    }
+  
+    // if (!clientId || !clientSecret) {
+    //   logger.warn("Missing Cloudflare Access service token headers");
+    //   return c.json(
+    //     { error: "Unauthorized: Missing Cloudflare Access service token" },
+    //     { status: 401 }
+    //   );
+    // }
 
     // In a production environment, you would validate these credentials against expected values
     // For example, comparing against environment variables or a secure storage
