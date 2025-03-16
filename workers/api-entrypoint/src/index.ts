@@ -9,10 +9,8 @@ import { ConsumerList } from "./endpoints/consumerList";
 import { ConsumerGet } from "./endpoints/consumerGet";
 import { consumerAuth } from "./middleware/consumerAuth";
 import { adminAuth } from "./middleware/adminAuth";
+import { ConsumerDelete } from "./endpoints/consumerDelete";
 export { Consumer } from "./durable-objects/consumer";
-import { createLogger } from "@workspace/shared-utils";
-
-const logger = createLogger("Admin Auth Middleware");
 
 // Start a Hono app
 const app = new Hono();
@@ -21,12 +19,6 @@ const app = new Hono();
 const openapi = fromHono(app, {
   docs_url: "/",
 });
-
-app.use('*', (c) => {
-
-  logger.info(c.req.raw)
-  return ""
-})
 
 // Apply middleware to protected routes
 app.use("/getEmbedding", consumerAuth);
@@ -57,6 +49,8 @@ openapi.get("/consumer/details", ConsumerGet);
 // Consumer endpoints - these need admin auth middleware
 openapi.post("/consumers", ConsumerPost);
 openapi.get("/consumers", ConsumerList);
+// Support deletion by name (path param) or by API key (header) or both
+openapi.delete("/consumers/:consumerName?", ConsumerDelete);
 
 // Export the Hono app
 export default app;
