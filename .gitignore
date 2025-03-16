@@ -10,7 +10,7 @@ dist
 # Environment
 .env
 .env.*
-.dev.vars
+# .dev.vars
 
 # IDE
 .vscode
