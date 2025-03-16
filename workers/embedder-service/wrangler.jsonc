@@ -20,24 +20,24 @@
   "dev": {
     "port": 8792
   },
-
+  "ai": {
+    "binding": "AI"
+  },
 
   /**
    * Environment-specific configuration
    */
   "env": {
-    "develop": {
-      // "vars": { "ENVIRONMENT": "develop" ,
-      // "account_id": "<develop-account-id>",
-      "workers_dev" : false,
+    "staging": {
+      "name": "embedder-service-staging",
+      "workers_dev": false,
       "ai": {
         "binding": "AI"
       }
     },
     "production": {
-      // "vars": { "ENVIRONMENT": "production" ,
-      // "account_id": "<production-account-id>",
-      "workers_dev" : false,
+      "name": "embedder-service",
+      "workers_dev": false,
       "ai": {
         "binding": "AI"
       }

@@ -19,12 +19,23 @@ const str2ab = (str: string) => {
 };
 
 const sign = async (content: string, signingKey: string) => {
+  console.log("signingKey", signingKey);
   const buf = str2ab(content);
+  console.log("buf", buf);
   const plainKey = signingKey
     .replace("-----BEGIN PRIVATE KEY-----", "")
     .replace("-----END PRIVATE KEY-----", "")
     .replace(/(\r\n|\n|\r)/gm, "");
-  const binaryKey = str2ab(atob(plainKey));
+  console.log("plainKey", plainKey);
+  let binaryKey;
+  try {
+    binaryKey = str2ab(atob(plainKey));
+  } catch (err) {
+    console.log("Issue with atob(plainKey)");
+    console.log("err", err);
+    throw err;
+  }
+  console.log("binaryKey", binaryKey);
   const signer = await crypto.subtle.importKey(
     "pkcs8",
     binaryKey,
@@ -35,6 +46,7 @@ const sign = async (content: string, signingKey: string) => {
     false,
     ["sign"]
   );
+  console.log("signer", signer);
   const binarySignature = await crypto.subtle.sign(
     { name: "RSASSA-PKCS1-V1_5" },
     signer,
@@ -74,10 +86,71 @@ export const getGoogleAuthToken = async (
       body,
     });
     const responseData = (await response.json()) as { access_token: string };
-    console.log(responseData);
     return responseData.access_token;
   } catch (err) {
-    console.error(err);
     throw err;
+  }
+};
+
+// For Cloud Run, we need to create a self-signed JWT token directly
+export const getGoogleIdToken = async (
+  user: string,
+  key: string,
+  cloudRunUrl: string
+): Promise<string> => {
+  const jwtHeader = objectToBase64url({ alg: "RS256", typ: "JWT" });
+
+  try {
+    console.log("Client ID available:", !!user);
+    console.log("Client Secret available:", !!key);
+    console.log("Cloud Run URL available:", !!cloudRunUrl);
+
+    const assertionTime = Math.round(Date.now() / 1000);
+    const expiryTime = assertionTime + 3600;
+    // Set the audience to the Cloud Run service URL
+    const claimset = objectToBase64url({
+      iss: user,
+      sub: user,
+      aud: "https://oauth2.googleapis.com/token",
+      exp: expiryTime,
+      iat: assertionTime,
+      target_audience: cloudRunUrl,
+    });
+
+    console.log("jwtHeader", jwtHeader);
+    console.log("claimset", claimset);
+
+    const jwtUnsigned = `${jwtHeader}.${claimset}`;
+    const signature = await sign(jwtUnsigned, key);
+    const signedJwt = `${jwtUnsigned}.${signature}`;
+
+    console.log("signedJwt", signedJwt);
+
+    const body = `grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Ajwt-bearer&assertion=${signedJwt}`;
+
+    const response = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body,
+    });
+
+    console.log("response", response);
+
+    const responseData = (await response.json()) as any;
+    // The key we need is "id_token" instead of "access_token"
+    if (!responseData.id_token) {
+      throw new Error(
+        `Failed to obtain ID token: ${JSON.stringify(responseData)}`
+      );
+    }
+
+    return responseData.id_token;
+  } catch (err) {
+    if (err instanceof Error) {
+      throw new Error(`Error generating access token: ${err.message}`);
+    }
+    throw new Error(`Error generating access token: ${err}`);
   }
 };
