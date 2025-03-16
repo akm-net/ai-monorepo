@@ -5,7 +5,7 @@ const app = new Hono()
 
 app.get('/', (c) => {
   const { TESTDEVVAR } = env<{ TESTDEVVAR: string }>(c)
-  console.log(TESTDEVVAR)
+  console.log(c.text(TESTDEVVAR))
   return c.text('Hello Hono!')
 })
 
