@@ -24,29 +24,16 @@ jobs:
     environment: "${{  github.ref_name == 'main' && 'production' || github.ref_name }}"
     timeout-minutes: 60 # Set timeout to prevent hung deployments
     steps:
-      - name: Checkout Worker Code
-        uses: actions/checkout@v4.2.2
-
-      - name: Clean up and Move Worker Code to Root
-        run: |
-          ls -la
-          # Enable extended glob pattern matching
-          shopt -s extglob
-
-          # Remove everything except the workers/portkey-service directory
-          rm -rf !(workers/portkey-service)
-          
-          # Move contents of workers/portkey-service to root
-          mv workers/portkey-service/* ./
-          
-          # Remove the now-empty workers/portkey-service folder
-          rmdir workers/portkey-service
-
       - name: Checkout Portkey Gateway
         uses: actions/checkout@v4.2.2
         with:
           repository: Portkey-AI/gateway
           path: .
+
+      - name: Checkout Worker Code
+        uses: actions/checkout@v4.2.2
+        with:
+          path: ai-monorepo
 
       - uses: pnpm/action-setup@v4.1.0
         with:
@@ -60,7 +47,7 @@ jobs:
           ENV_NAME="${{ github.ref_name == 'main' && 'production' || github.ref_name }}"
 
           # Deploy the worker
-          cd 
+          mv ./ai-monorepo/workers/portkey-service/* ./
           npm install
           npx wrangler deploy --env $ENV_NAME --config ./wrangler.jsonc
 
