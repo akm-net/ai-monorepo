@@ -29,6 +29,7 @@ jobs:
 
       - name: Clean up and Move Worker Code to Root
         run: |
+          ls -la
           # Enable extended glob pattern matching
           shopt -s extglob
 
