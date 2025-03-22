@@ -41,7 +41,6 @@ jobs:
           version: 10.5.2
 
       - name: Deploy with Wrangler CLI
-        if: "steps.check-changes.outputs.has_changes == 'true'"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
