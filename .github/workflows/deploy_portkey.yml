@@ -32,6 +32,9 @@ jobs:
 
       - name: Clean up and Move Worker Code to Root
         run: |
+          # Enable extended glob pattern matching
+          shopt -s extglob
+          
           # Remove everything except the workers/portkey-service directory
           rm -rf !(workers/portkey-service)
           
