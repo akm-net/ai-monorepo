@@ -26,15 +26,12 @@ jobs:
     steps:
       - name: Checkout Worker Code
         uses: actions/checkout@v4.2.2
-        with:
-          # Default checkout (we're checking out the entire repo)
-          path: .
 
       - name: Clean up and Move Worker Code to Root
         run: |
           # Enable extended glob pattern matching
           shopt -s extglob
-          
+
           # Remove everything except the workers/portkey-service directory
           rm -rf !(workers/portkey-service)
           
