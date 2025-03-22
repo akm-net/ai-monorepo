@@ -21,7 +21,7 @@ jobs:
   deploy:
     name: "Deploy portkey to ${{  github.ref_name == 'main' && 'production' || github.ref_name }}"
     runs-on: ubuntu-latest
-    environment: "${{  github.ref_name == 'main' && 'production' || github.ref_name }}
+    environment: "${{  github.ref_name == 'main' && 'production' || github.ref_name }}"
     timeout-minutes: 60 # Set timeout to prevent hung deployments
     steps:
       - name: Checkout Portkey Gateway
