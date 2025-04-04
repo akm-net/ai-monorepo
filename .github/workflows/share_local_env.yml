@@ -128,26 +128,26 @@ jobs:
             ATTACHMENT_PATH=".localdev.zip"
             FILENAME=$(basename "$ATTACHMENT_PATH")
             MESSAGE=$(cat <<EOF
-            From: $SMTP_USERNAME
-            To: $TO
-            Subject: $SUBJECT
-            MIME-Version: 1.0
-            Content-Type: multipart/mixed; boundary="boundary42"
+From: $SMTP_USERNAME
+To: $TO
+Subject: $SUBJECT
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="boundary42"
 
-            --boundary42
-            Content-Type: text/plain; charset="UTF-8"
+--boundary42
+Content-Type: text/plain; charset="UTF-8"
 
-            $BODY
+$BODY
 
-            --boundary42
-            Content-Type: application/octet-stream; name="$FILENAME"
-            Content-Transfer-Encoding: base64
-            Content-Disposition: attachment; filename="$FILENAME"
+--boundary42
+Content-Type: application/octet-stream; name="$FILENAME"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="$FILENAME"
 
-            $(base64 "$ATTACHMENT_PATH")
-            --boundary42--
-            EOF
-            )
+$(base64 "$ATTACHMENT_PATH")
+--boundary42--
+EOF
+)
 
             # Send the email using Curl
             curl --url "smtp://$SMTP_SERVER:$SMTP_PORT" \
