@@ -116,7 +116,7 @@ jobs:
           if [ ! -z "$EMAIL" ]; then
             # Install required tools
             sudo apt-get update && sudo apt-get install -y mailutils postfix ca-certificates
-            echo "[smtp.gmail.com]:465  ${{ secrets.GMAIL_USER }}:${{ secrets.GMAIL_APP_PASSWORD }}" > /etc/postfix/sasl/sasl_passwd
+            sudo echo "[smtp.gmail.com]:465  ${{ secrets.GMAIL_USER }}:${{ secrets.GMAIL_APP_PASSWORD }}" > /etc/postfix/sasl/sasl_passwd
             sudo postmap /etc/postfix/sasl/sasl_passwd
             sudo chmod 600 /etc/postfix/sasl/sasl_passwd /etc/postfix/sasl/sasl_passwd.db
             # Set relayhost and add SASL authentication settings
