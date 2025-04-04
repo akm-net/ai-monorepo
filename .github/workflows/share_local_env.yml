@@ -1,6 +1,5 @@
 name: Share Local Env
-# Trigger the workflow on pushes to staging/main branches when worker code changes
-# or manually via workflow_dispatch with optional parameters
+
 on:
   workflow_dispatch:
     inputs:
@@ -120,13 +119,13 @@ jobs:
 
             # Create mailrc configuration
             cat > ~/.mailrc << EOF
-            set smtp="smtp://smtp.gmail.com:587"
-            set smtp-auth=login
-            set smtp-auth-user="${{ secrets.GMAIL_USER }}"
-            set smtp-auth-password="${{ secrets.GMAIL_PASSWORD }}"
-            set from="${{ secrets.GMAIL_USER }}"
-            set ssl-verify=peer
-            EOF
+set smtp="smtp://smtp.gmail.com:587"
+set smtp-auth=login
+set smtp-auth-user="${{ secrets.GMAIL_USER }}"
+set smtp-auth-password="${{ secrets.GMAIL_PASSWORD }}"
+set from="${{ secrets.GMAIL_USER }}"
+set ssl-verify=peer
+EOF
 
             # Create email content
             echo "Here's the file with the environment variables for local development" | \
