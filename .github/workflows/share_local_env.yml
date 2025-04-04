@@ -6,11 +6,11 @@ on:
     inputs:
       tele_chatid:
         description: Enter the Telegram chat ID to send to. Make sure the chat ID is correct.
-        required: true
+        required: false
         type: string
       email:
         description: Enter the email to send to. Make sure the chat ID is correct.
-        required: true
+        required: false
         type: string
 
 # Set all the neccessary secrets in Github
