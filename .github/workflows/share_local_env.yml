@@ -114,29 +114,34 @@ jobs:
 
           # Send via email if email is provided
           if [ ! -z "$EMAIL" ]; then
-            # Install required tools
-            sudo apt-get update && sudo apt-get install -y mailutils postfix ca-certificates
-            sudo echo "[smtp.gmail.com]:465  ${{ secrets.GMAIL_USER }}:${{ secrets.GMAIL_APP_PASSWORD }}" > /etc/postfix/sasl/sasl_passwd
-            sudo postmap /etc/postfix/sasl/sasl_passwd
-            sudo chmod 600 /etc/postfix/sasl/sasl_passwd /etc/postfix/sasl/sasl_passwd.db
-            # Set relayhost and add SASL authentication settings
-            postconf -e "relayhost = [smtp.gmail.com]:465"
-            postconf -e "smtp_use_tls = yes"
-            postconf -e "smtp_sasl_auth_enable = yes"
-            postconf -e "smtp_sasl_security_options = noanonymous"
-            postconf -e "smtp_sasl_password_maps = hash:/etc/postfix/sasl/sasl_passwd"
-            postconf -e "smtp_tls_security_level = encrypt"
-            postconf -e "smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt"
-            postconf -e "smtp_tls_wrappermode = yes"
+            # SMTP server settings for Gmail
+            SMTP_SERVER="smtp.gmail.com"
+            SMTP_PORT="587"
+            SMTP_USERNAME="${{ secrets.GMAIL_USER }}"
+            SMTP_PASSWORD="${{ secrets.GMAIL_APP_PASSWORD }}"
 
-            sudo systemctl restart postfix
-            sudo ufw allow "Postfix"
-            sudo ufw allow "postfix SMTP"
-            sudo ufw allow "Postfix Submission"
+            # Recipient email address
+            TO="${{ github.event.inputs.email }}"
 
-            echo "Message 1 sent through the terminal" | mailx -s "Echo command mail 1" "${{ github.event.inputs.email }}"
+            # Email subject and body
+            SUBJECT="Hello from Curl"
+            BODY="This is the email body sent using Curl and SMTP."
 
+            # Construct the email message
+            MESSAGE="Subject: $SUBJECT\n\n$BODY"
 
+            # Send the email using Curl
+            curl --url "smtp://$SMTP_SERVER:$SMTP_PORT" \
+                --ssl-reqd \
+                --mail-from "$SMTP_USERNAME" \
+                --mail-rcpt "$TO" \
+                --user "$SMTP_USERNAME:$SMTP_PASSWORD" \
+                --tlsv1.2 \
+                -T <(echo -e "$MESSAGE")
+
+            echo "Email sent to $TO"
+
+          
             # Create email content
             # echo "Here's the file with the environment variables for local development" | \
             # mail -s "Local Development Environment Variables" \
