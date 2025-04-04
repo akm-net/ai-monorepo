@@ -1,13 +1,13 @@
-name: Share GH Secrets Via Tele
+name: Share Local Env
 # Trigger the workflow on pushes to staging/main branches when worker code changes
 # or manually via workflow_dispatch with optional parameters
 on:
   workflow_dispatch:
     inputs:
-      tele_username:
-        description: Enter the Telegram username to send to. Make sure the username is correct.
+      tele_chatid:
+        description: Enter the Telegram chat ID to send to. Make sure the chat ID is correct.
         required: true
-        default: false
+        default: "chat ID"
         type: string
 
 # Set all the neccessary secrets in Github
@@ -117,21 +117,12 @@ jobs:
       - name: Send Telegram Message
         run: |
           # Get the Telegram username from input
-          TELEGRAM_USERNAME="${{ github.event.inputs.tele_username }}"
+          TELEGRAM_CHATID="${{ github.event.inputs.tele_chatid }}"
           
           # First, get the chat_id for the username
           CHAT_INFO=$(curl -s -X GET \
-            "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/getChat?chat_id=@${TELEGRAM_USERNAME}")
-          
-          # Extract the chat_id from the response
-          CHAT_ID=$(echo $CHAT_INFO | jq -r '.result.id')
+            "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage?chat_id=$TELEGRAM_CHATID&text=Hello111%20from%20my%20bot!")
           
           # Prepare the message
-          MESSAGE="🔐 Secrets have been shared with @$TELEGRAM_USERNAME"
-          
-          # Send message via Telegram API
-          curl -s -X POST \
-            https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage \
-            -d chat_id="$CHAT_ID" \
-            -d text="$MESSAGE" \
-            -d parse_mode="HTML"
+          MESSAGE="🔐 Secrets have been shared with @$TELEGRAM_CHATID"
+
