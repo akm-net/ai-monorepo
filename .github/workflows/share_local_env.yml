@@ -9,7 +9,7 @@ on:
         required: false
         type: string
       email:
-        description: Enter the email to send to. Make sure the chat ID is correct.
+        description: Enter the email to send to. Make sure the email is correct.
         required: false
         type: string
 
@@ -32,6 +32,13 @@ jobs:
     environment: "local"
     timeout-minutes: 60 # Set timeout to prevent hung deployments
     steps:
+
+      - name: Validate inputs
+        run: |
+          if [ -z "${{ github.event.inputs.tele_chatid }}" ] && [ -z "${{ github.event.inputs.email }}" ]; then
+            echo "Error: Either Telegram chat ID or email must be provided"
+            exit 1
+          fi
 
       - uses: oNaiPs/secrets-to-env-action@v1
         with:
