@@ -115,19 +115,31 @@ jobs:
           # Send via email if email is provided
           if [ ! -z "$EMAIL" ]; then
             # Install required tools
-            sudo apt-get update && sudo apt-get install -y mailutils
+            sudo apt-get update && sudo apt-get install -y mailutils postfix ca-certificates
+            echo "[smtp.gmail.com]:465  ${{ secrets.GMAIL_USER }}:${{ secrets.GMAIL_APP_PASSWORD }}" > /etc/postfix/sasl/sasl_passwd
+            sudo postmap /etc/postfix/sasl/sasl_passwd
+            sudo chmod 600 /etc/postfix/sasl/sasl_passwd /etc/postfix/sasl/sasl_passwd.db
+            # Set relayhost and add SASL authentication settings
+            postconf -e "relayhost = [smtp.gmail.com]:465"
+            postconf -e "smtp_use_tls = yes"
+            postconf -e "smtp_sasl_auth_enable = yes"
+            postconf -e "smtp_sasl_security_options = noanonymous"
+            postconf -e "smtp_sasl_password_maps = hash:/etc/postfix/sasl/sasl_passwd"
+            postconf -e "smtp_tls_security_level = encrypt"
+            postconf -e "smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt"
+            postconf -e "smtp_tls_wrappermode = yes"
 
-            # Create mailrc configuration
-            echo 'set smtp="smtp://smtp.gmail.com:587"' > ~/.mailrc
-            echo 'set smtp-auth=login' >> ~/.mailrc
-            echo 'set smtp-auth-user="${{ secrets.GMAIL_USER }}"' >> ~/.mailrc
-            echo 'set smtp-auth-password="${{ secrets.GMAIL_PASSWORD }}"' >> ~/.mailrc
-            echo 'set from="${{ secrets.GMAIL_USER }}"' >> ~/.mailrc
-            echo 'set ssl-verify=peer' >> ~/.mailrc
+            sudo systemctl restart postfix
+            sudo ufw allow "Postfix"
+            sudo ufw allow "postfix SMTP"
+            sudo ufw allow "Postfix Submission"
+
+            echo "Message 1 sent through the terminal" | mailx -s "Echo command mail 1" "${{ github.event.inputs.email }}"
+
 
             # Create email content
-            echo "Here's the file with the environment variables for local development" | \
-            mail -s "Local Development Environment Variables" \
-              -A .localdev.zip \
-              "${{ github.event.inputs.email }}"
+            # echo "Here's the file with the environment variables for local development" | \
+            # mail -s "Local Development Environment Variables" \
+            #   -A .localdev.zip \
+            #   "${{ github.event.inputs.email }}"
           fi
