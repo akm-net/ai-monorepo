@@ -118,14 +118,12 @@ jobs:
             sudo apt-get update && sudo apt-get install -y mailutils
 
             # Create mailrc configuration
-            cat > ~/.mailrc << EOF
-set smtp="smtp://smtp.gmail.com:587"
-set smtp-auth=login
-set smtp-auth-user="${{ secrets.GMAIL_USER }}"
-set smtp-auth-password="${{ secrets.GMAIL_PASSWORD }}"
-set from="${{ secrets.GMAIL_USER }}"
-set ssl-verify=peer
-EOF
+            echo 'set smtp="smtp://smtp.gmail.com:587"' > ~/.mailrc
+            echo 'set smtp-auth=login' >> ~/.mailrc
+            echo 'set smtp-auth-user="${{ secrets.GMAIL_USER }}"' >> ~/.mailrc
+            echo 'set smtp-auth-password="${{ secrets.GMAIL_PASSWORD }}"' >> ~/.mailrc
+            echo 'set from="${{ secrets.GMAIL_USER }}"' >> ~/.mailrc
+            echo 'set ssl-verify=peer' >> ~/.mailrc
 
             # Create email content
             echo "Here's the file with the environment variables for local development" | \
