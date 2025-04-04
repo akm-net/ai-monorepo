@@ -24,7 +24,7 @@ env:
 jobs:
 
   share-secrets:
-    name: "Share GH secrets via Tele"
+    name: "Share Local Env via Telegram"
     runs-on: ubuntu-latest
     environment: "local"
     timeout-minutes: 60 # Set timeout to prevent hung deployments
@@ -38,91 +38,145 @@ jobs:
       #   with:
       #     version: 10.5.2
 
-      # - name: Check which services require secret updates
-      #   id: check-changes
-      #   run: |
-      #     CHANGED_WORKERS='${{ needs.process-secrets.outputs.worker-dirs }}'
-      #     if echo $CHANGED_WORKERS | jq -e 'contains(["${{ matrix.worker-dir }}"])' > /dev/null; then
-      #       echo "Worker ${{ matrix.worker-dir }} has changes, will deploy"
-      #       echo "has_changes=true" >> $GITHUB_OUTPUT
-      #     else
-      #       echo "Worker ${{ matrix.worker-dir }} has no changes, skipping deployment"
-      #       echo "has_changes=false" >> $GITHUB_OUTPUT
-      #     fi
-
-      # - name: Deploy Secrets with Wrangler CLI
-      #   if: "steps.check-changes.outputs.has_changes == 'true'"
-      #   run: |-
-
-      #     # Get the appropriate secret names for this worker
-      #     SECRET_NAMES=""
-      #     case "${{ matrix.worker-dir }}" in
-      #       agent-service)
-      #         SECRET_NAMES="${{ env.AGENT_SECRET_NAMES }}"
-      #         ;;
-      #       api-entrypoint)
-      #         SECRET_NAMES="${{ env.API_ENTRYPOINT_SECRET_NAMES }}"
-      #         ;;
-      #       embedder-service)
-      #         SECRET_NAMES="${{ env.EMBEDDER_SECRET_NAMES }}"
-      #         ;;
-      #       screenshot-service)
-      #         SECRET_NAMES="${{ env.SCREENSHOT_SECRET_NAMES }}"
-      #         ;;
-      #       search-service)
-      #         SECRET_NAMES="${{ env.SEARCH_SECRET_NAMES }}"
-      #         ;;
-      #       urlscan-service)
-      #         SECRET_NAMES="${{ env.URLSCAN_SECRET_NAMES }}"
-      #         ;;
-      #       screenshot-backup-service)
-      #         SECRET_NAMES="${{ env.SCREENSHOT_BACKUP_SECRET_NAMES }}"
-      #         ;;
-      #       trivialfilter-service)
-      #         SECRET_NAMES="${{ env.TRIVIALFILTER_SECRET_NAMES }}"
-      #         ;;
-      #     esac
-
-      #     # Loop through each secret and set it
-      #     for NAME in $(echo "$SECRET_NAMES" | tr ',' '\n' | tr -d ' '); do
-      #       if [ -n "$NAME" ]; then
-      #         # Get the value of the secret
-      #         VALUE=$(eval echo \$$NAME)
-              
-      #         # Skip if the secret has no value
-      #         if [ -z "$VALUE" ]; then
-      #           echo "Warning: Secret $NAME has no value"
-      #           continue
-      #         fi
-              
-      #         # Determine if this is a prefixed secret that needs to be stripped
-      #         WORKER_DIR="${{ matrix.worker-dir }}"
-      #         WORKER_DIR=${WORKER_DIR//-/_}  # Replace hyphens with underscores
-      #         SERVICE_PREFIX=$(echo "${WORKER_DIR}" | sed 's/_service$//')
-      #         SERVICE_PREFIX_UPPER=$(echo "${SERVICE_PREFIX}" | tr '[:lower:]' '[:upper:]')
-              
-      #         if [[ "$NAME" == "${SERVICE_PREFIX_UPPER}_"* ]]; then
-      #           # Extract the actual secret name without the prefix
-      #           ACTUAL_NAME=${NAME#"${SERVICE_PREFIX_UPPER}_"}
-      #           echo "Setting secret: $ACTUAL_NAME (from $NAME)"
-      #           echo "$VALUE" | npx wrangler secret put "$ACTUAL_NAME" --env $ENV_NAME
-      #         else
-      #           # Regular secret (no prefix to strip)
-      #           echo "Setting secret: $NAME"
-      #           echo "$VALUE" | npx wrangler secret put "$NAME" --env $ENV_NAME
-      #         fi
-      #       fi
-      #     done
-
-      - name: Send Telegram Message
+      - name: Check which services require secret updates
+        id: check-changes
         run: |
-          # Get the Telegram username from input
+          CHANGED_WORKERS='${{ needs.process-secrets.outputs.worker-dirs }}'
+          if echo $CHANGED_WORKERS | jq -e 'contains(["${{ matrix.worker-dir }}"])' > /dev/null; then
+            echo "Worker ${{ matrix.worker-dir }} has changes, will deploy"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "Worker ${{ matrix.worker-dir }} has no changes, skipping deployment"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Deploy Secrets with Wrangler CLI
+        if: "steps.check-changes.outputs.has_changes == 'true'"
+        run: |-
+
+          # Get the appropriate secret names for this worker
+          SECRET_NAMES=""
+          case "${{ matrix.worker-dir }}" in
+            agent-service)
+              SECRET_NAMES="${{ env.AGENT_SECRET_NAMES }}"
+              ;;
+            api-entrypoint)
+              SECRET_NAMES="${{ env.API_ENTRYPOINT_SECRET_NAMES }}"
+              ;;
+            embedder-service)
+              SECRET_NAMES="${{ env.EMBEDDER_SECRET_NAMES }}"
+              ;;
+            screenshot-service)
+              SECRET_NAMES="${{ env.SCREENSHOT_SECRET_NAMES }}"
+              ;;
+            search-service)
+              SECRET_NAMES="${{ env.SEARCH_SECRET_NAMES }}"
+              ;;
+            urlscan-service)
+              SECRET_NAMES="${{ env.URLSCAN_SECRET_NAMES }}"
+              ;;
+            screenshot-backup-service)
+              SECRET_NAMES="${{ env.SCREENSHOT_BACKUP_SECRET_NAMES }}"
+              ;;
+            trivialfilter-service)
+              SECRET_NAMES="${{ env.TRIVIALFILTER_SECRET_NAMES }}"
+              ;;
+          esac
+
+          # Loop through each secret and set it
+          for NAME in $(echo "$SECRET_NAMES" | tr ',' '\n' | tr -d ' '); do
+            if [ -n "$NAME" ]; then
+              # Get the value of the secret
+              VALUE=$(eval echo \$$NAME)
+              
+              # Skip if the secret has no value
+              if [ -z "$VALUE" ]; then
+                echo "Warning: Secret $NAME has no value"
+                continue
+              fi
+              
+              # Determine if this is a prefixed secret that needs to be stripped
+              WORKER_DIR="${{ matrix.worker-dir }}"
+              WORKER_DIR=${WORKER_DIR//-/_}  # Replace hyphens with underscores
+              SERVICE_PREFIX=$(echo "${WORKER_DIR}" | sed 's/_service$//')
+              SERVICE_PREFIX_UPPER=$(echo "${SERVICE_PREFIX}" | tr '[:lower:]' '[:upper:]')
+              
+              if [[ "$NAME" == "${SERVICE_PREFIX_UPPER}_"* ]]; then
+                # Extract the actual secret name without the prefix
+                ACTUAL_NAME=${NAME#"${SERVICE_PREFIX_UPPER}_"}
+                echo "Setting secret: $ACTUAL_NAME (from $NAME)"
+                echo "$VALUE" | npx wrangler secret put "$ACTUAL_NAME" --env $ENV_NAME
+              else
+                # Regular secret (no prefix to strip)
+                echo "Setting secret: $NAME"
+                echo "$VALUE" | npx wrangler secret put "$NAME" --env $ENV_NAME
+              fi
+            fi
+          done
+
+      - name: Create Local Dev Environment Files
+        run: |
+          # Create .localdev directory
+          mkdir -p .localdev
+
+          # Define services and their secrets
+          declare -A SERVICE_SECRETS=(
+            ["agent-service"]="${{ env.AGENT_SECRET_NAMES }}"
+            ["api-entrypoint"]="${{ env.API_ENTRYPOINT_SECRET_NAMES }}"
+            ["embedder-service"]="${{ env.EMBEDDER_SECRET_NAMES }}"
+            ["screenshot-service"]="${{ env.SCREENSHOT_SECRET_NAMES }}"
+            ["search-service"]="${{ env.SEARCH_SECRET_NAMES }}"
+            ["urlscan-service"]="${{ env.URLSCAN_SECRET_NAMES }}"
+            ["screenshot-backup-service"]="${{ env.SCREENSHOT_BACKUP_SECRET_NAMES }}"
+            ["trivialfilter-service"]="${{ env.TRIVIALFILTER_SECRET_NAMES }}"
+          )
+
+          # Loop through each service
+          for SERVICE in "${!SERVICE_SECRETS[@]}"; do
+            # Create service directory
+            mkdir -p ".localdev/$SERVICE"
+            
+            # Get secrets for this service
+            SECRET_NAMES="${SERVICE_SECRETS[$SERVICE]}"
+            
+            # Create .dev.vars file
+            touch ".localdev/$SERVICE/.dev.vars"
+            
+            # Process each secret
+            for NAME in $(echo "$SECRET_NAMES" | tr ',' '\n' | tr -d ' '); do
+              if [ -n "$NAME" ]; then
+                # Get the value of the secret
+                VALUE=$(eval echo \$$NAME)
+                
+                if [ -n "$VALUE" ]; then
+                  # Convert service name format for prefix checking
+                  SERVICE_NORMALIZED=${SERVICE//-/_}
+                  SERVICE_PREFIX=$(echo "${SERVICE_NORMALIZED}" | sed 's/_service$//')
+                  SERVICE_PREFIX_UPPER=$(echo "${SERVICE_PREFIX}" | tr '[:lower:]' '[:upper:]')
+                  
+                  # Handle prefixed secrets
+                  if [[ "$NAME" == "${SERVICE_PREFIX_UPPER}_"* ]]; then
+                    ACTUAL_NAME=${NAME#"${SERVICE_PREFIX_UPPER}_"}
+                    echo "$ACTUAL_NAME=$VALUE" >> ".localdev/$SERVICE/.dev.vars"
+                  else
+                    echo "$NAME=$VALUE" >> ".localdev/$SERVICE/.dev.vars"
+                  fi
+                fi
+              fi
+            done
+          done
+
+      - name: Create ZIP Archive and send via telegram
+        run: |
+          cd .localdev
+          zip -r ../local_dev_secrets.zip ./*
+          cd ..
+
           TELEGRAM_CHATID="${{ github.event.inputs.tele_chatid }}"
           
-          # First, get the chat_id for the username
-          CHAT_INFO=$(curl -s -X GET \
-            "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage?chat_id=$TELEGRAM_CHATID&text=Hello111%20from%20my%20bot!")
-          
-          # Prepare the message
-          MESSAGE="🔐 Secrets have been shared with @$TELEGRAM_CHATID"
+          # Send the ZIP file
+          curl -F document=@"local_dev_secrets.zip" \
+            "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendDocument" \
+            -F chat_id="$TELEGRAM_CHATID" \
+            -F caption="🔐 Here are your local development environment files"
 
