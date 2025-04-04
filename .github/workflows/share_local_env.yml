@@ -127,27 +127,26 @@ jobs:
             SUBJECT="Hello from Curl"
             ATTACHMENT_PATH=".localdev.zip"
             FILENAME=$(basename "$ATTACHMENT_PATH")
-            MESSAGE=$(cat <<EOF
-From: $SMTP_USERNAME
-To: $TO
-Subject: $SUBJECT
-MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="boundary42"
-
---boundary42
-Content-Type: text/plain; charset="UTF-8"
-
-$BODY
-
---boundary42
-Content-Type: application/octet-stream; name="$FILENAME"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="$FILENAME"
-
-$(base64 "$ATTACHMENT_PATH")
---boundary42--
-EOF
-)
+            MESSAGE=$(printf '%s\n' \
+            "From: $SMTP_USERNAME" \
+            "To: $TO" \
+            "Subject: $SUBJECT" \
+            "MIME-Version: 1.0" \
+            "Content-Type: multipart/mixed; boundary=\"boundary42\"" \
+            "" \
+            "--boundary42" \
+            "Content-Type: text/plain; charset=\"UTF-8\"" \
+            "" \
+            "Here's the file with the environment variables for local development" \
+            "" \
+            "--boundary42" \
+            "Content-Type: application/octet-stream; name=\"$FILENAME\"" \
+            "Content-Transfer-Encoding: base64" \
+            "Content-Disposition: attachment; filename=\"$FILENAME\"" \
+            "" \
+            "$(base64 "$ATTACHMENT_PATH")" \
+            "--boundary42--" \
+            )
 
             # Send the email using Curl
             curl --url "smtp://$SMTP_SERVER:$SMTP_PORT" \
