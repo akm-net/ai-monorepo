@@ -124,7 +124,7 @@ jobs:
             TO="${{ github.event.inputs.email }}"
 
             # Email subject and body
-            SUBJECT="Hello from Curl"
+            SUBJECT="Local Dev Setup: ai-monorepo Environment Variables Inside 🔐"
             ATTACHMENT_PATH=".localdev.zip"
             FILENAME=$(basename "$ATTACHMENT_PATH")
             MESSAGE=$(printf '%s\n' \
@@ -137,7 +137,7 @@ jobs:
             "--boundary42" \
             "Content-Type: text/plain; charset=\"UTF-8\"" \
             "" \
-            "Here's the file with the environment variables for local development" \
+            "🔐 Here's the file with the environment variables for local development" \
             "" \
             "--boundary42" \
             "Content-Type: application/octet-stream; name=\"$FILENAME\"" \
