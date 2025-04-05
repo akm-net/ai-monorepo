@@ -6,7 +6,7 @@ on:
       - chore/test
       - main
 
-# test
+# test2
 jobs:
   test:
     runs-on: ubuntu-latest
