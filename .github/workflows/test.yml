@@ -1,0 +1,19 @@
+name: Test Workflow
+
+on:
+  push:
+    branches:
+      - chore/test
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run test job
+        run: |
+          echo "This is a test workflow"
+          echo "Triggered by push to chore/test branch"
