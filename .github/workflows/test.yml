@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - chore/test
+      - main
 
 # test
 jobs:
